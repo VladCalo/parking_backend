@@ -1,3 +1,8 @@
+#### Note that:
+- a user can only have one active booking at a time (user 1to1 with booking)
+- maybe add default price for parking slots and when a rule is active overwrites that (not implemented)
+
+
 ### BASIC CRUD
 http://localhost:8000/ParkingApp/api/
 - parkowner/
