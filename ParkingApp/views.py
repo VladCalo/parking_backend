@@ -69,7 +69,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 available=True,
             ).exists()
             
-            ### cant make two reservations on the same parking slot but at different times
+            ###! cant make two reservations on the same parking slot but at different times
             
             parking_slot = ParkingSlotRules.objects.filter(
                 parking_slot=request.data.get('parking_slot', None),
