@@ -3,7 +3,7 @@
 - maybe add default price for parking slots and when a rule is active overwrites that (not implemented)
 
 
-### BASIC CRUD
+### CURD enpoints
 http://localhost:8000/ParkingApp/api/
 - parkowner/
 - users/
@@ -14,5 +14,16 @@ http://localhost:8000/ParkingApp/api/
 - parkingslotrules/
 - bookings/
 - credentials/
+
+### Story endpoints, what to include in request body:
+
+!!! still in dev (cant make two reservations on the same parking slot but at different times)<->more filtering
+**create bookings**: check if a rule is active and updates price for the specific time frame, else checks if the booking can be made for that time
+- user
+- booking_start_date(iso format)
+- booking_end_date(iso format)
+- parking_slot (id) 
+
+
 
 #### for GET, UPDATE, DELETE with pk: http://localhost:8000/ParkingApp/api/users/pk
