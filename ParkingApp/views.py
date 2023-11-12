@@ -1,5 +1,6 @@
 # views.py
 from rest_framework.response import Response
+from django.db import transaction
 from rest_framework import status
 from datetime import datetime
 from rest_framework import viewsets
@@ -68,7 +69,9 @@ class BookingViewSet(viewsets.ModelViewSet):
                 available=True,
             ).exists()
             
-            parking_slot_price = ParkingSlotRules.objects.filter(
+            ### cant make two reservations on the same parking slot but at different times
+            
+            parking_slot = ParkingSlotRules.objects.filter(
                 parking_slot=request.data.get('parking_slot', None),
                 date_start_rule__lte=booking_start_date,
                 date_end_rule__gte=booking_end_date,
@@ -122,3 +125,38 @@ class BookingViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def update(self, request, pk=None, *args, **kwargs):
+        booking_instance = self.get_object()
+
+        new_start_date_str = request.data.get('booking_start_date', None)
+        new_end_date_str = request.data.get('booking_end_date', None)
+
+        if not new_start_date_str or not new_end_date_str:
+            return Response({'error': 'New booking start date and end date are required in request body.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_start_date = datetime.strptime(new_start_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            new_end_date = datetime.strptime(new_end_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            return Response({'error': 'Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).'}, status=status.HTTP_400_BAD_REQUEST)
+
+        parking_slot_id = request.data.get('parking_slot', None)
+        
+        with transaction.atomic():
+            # Check for conflicts with other bookings
+            conflicting_bookings = Booking.objects.filter(
+                parking_slot=parking_slot_id,
+                booking_start_date__lt=new_end_date,
+                booking_end_date__gt=new_start_date,
+            ).exclude(pk=pk)  # Exclude the current booking from the check
+
+            if conflicting_bookings.exists():
+                return Response({'error': 'Conflicts with other bookings for the specified period.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # No conflicts, update the booking
+            booking_instance.booking_start_date = new_start_date
+            booking_instance.booking_end_date = new_end_date
+            booking_instance.save()
+
+            return Response({'message': 'Booking updated successfully.'}, status=status.HTTP_200_OK)
