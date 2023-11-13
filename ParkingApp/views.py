@@ -3,8 +3,11 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.permissions import AllowAny
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from datetime import datetime
 from rest_framework import viewsets
 from .models import ParkOwner, Users, Credentials, Park, ParkDetails, Floor, ParkingSlot, ParkingSlotRules, Booking
@@ -114,5 +117,48 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = request.data.get('user', instance.user.id)
+        parking_slot_id = request.data.get('parking_slot', instance.parking_slot.id)
+        booking_start_date_str = request.data.get('booking_start_date', str(instance.booking_start_date))
+        booking_end_date_str = request.data.get('booking_end_date', str(instance.booking_end_date))
+
+        # Convert date strings to datetime objects
+        try:
+            booking_start_date = datetime.strptime(booking_start_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            booking_end_date = datetime.strptime(booking_end_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            return Response({'error': 'Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for conflicting bookings
+        conflicting_bookings = Booking.objects.filter(
+            ~Q(pk=instance.id),  # Exclude the current booking from the check
+            parking_slot=parking_slot_id,
+            booking_start_date__lt=booking_end_date,
+            booking_end_date__gt=booking_start_date,
+        ).exclude(
+            Q(booking_start_date__gte=booking_end_date) | Q(booking_end_date__lte=booking_start_date)
+        )
+
+        if conflicting_bookings.exists():
+            return Response({'error': 'Conflicts with existing bookings for the specified period.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Construct the updated data dictionary
+        updated_data = {
+            'user': user_id,
+            'parking_slot': parking_slot_id,
+            'booking_start_date': booking_start_date,
+            'booking_end_date': booking_end_date,
+        }
+
+        serializer = BookingSerializer(instance, data=updated_data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
