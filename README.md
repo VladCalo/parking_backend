@@ -10,7 +10,8 @@ http://localhost:8000/ParkingApp/api/
 - park/
 - parkdetails/
 - floors/
-- parkingslots/
+- allparkingslots/
+- availableparkingslots
 - parkingslotrules/
 - bookings/
 - credentials/
@@ -22,6 +23,10 @@ http://localhost:8000/ParkingApp/api/
 - booking_start_date(iso format)
 - booking_end_date(iso format)
 - parking_slot (id) 
+
+**available parking slots**: all parking slots that dont have active bookings
+
+**all parking slots**: all parking slots
 
 
 

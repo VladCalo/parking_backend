@@ -33,8 +33,12 @@ class ParkDetailsViewSet(viewsets.ModelViewSet):
 class FloorViewSet(viewsets.ModelViewSet):
     queryset = Floor.objects.all()
     serializer_class = FloorSerializer
+    
+class AllParkingSlotViewSet(viewsets.ModelViewSet):
+    queryset = ParkingSlot.objects.all()
+    serializer_class = ParkingSlotSerializer
 
-class ParkingSlotViewSet(viewsets.ModelViewSet):
+class AvailableParkingSlotViewSet(viewsets.ModelViewSet):
     queryset = ParkingSlot.objects.all()
     serializer_class = ParkingSlotSerializer
     
@@ -53,11 +57,8 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
         )
 
         # If there are active bookings, set physical_available to False for the corresponding parking slots
-        if active_bookings.exists():
-            active_parking_slot_ids = active_bookings.values_list('parking_slot', flat=True)
-            queryset = queryset.exclude(parking_slot_id__in=active_parking_slot_ids)
-            ParkingSlot.objects.filter(pk__in=active_parking_slot_ids).update(physical_available=False)
-
+        ParkingSlot.objects.update(physical_available=Q(pk__in=active_bookings.values('parking_slot')))
+        
         # Filter parking slots with physical_available set to True
         queryset = queryset.filter(physical_available=True)
 
