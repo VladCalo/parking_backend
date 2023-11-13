@@ -38,8 +38,31 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
     queryset = ParkingSlot.objects.all()
     serializer_class = ParkingSlotSerializer
     
-    def list():
-       pass
+    def list(self, request, *args, **kwargs):
+       # Get all parking slots
+        queryset = ParkingSlot.objects.all()
+
+        # Get the current date and time
+        current_datetime = timezone.now()
+        print(current_datetime)
+
+        # Check for active bookings
+        active_bookings = Booking.objects.filter(
+            Q(booking_start_date__lte=current_datetime, booking_end_date__gt=current_datetime) |
+            Q(booking_start_date__gte=current_datetime, booking_end_date__lt=current_datetime)
+        )
+
+        # If there are active bookings, set physical_available to False for the corresponding parking slots
+        if active_bookings.exists():
+            active_parking_slot_ids = active_bookings.values_list('parking_slot', flat=True)
+            queryset = queryset.exclude(parking_slot_id__in=active_parking_slot_ids)
+            ParkingSlot.objects.filter(pk__in=active_parking_slot_ids).update(physical_available=False)
+
+        # Filter parking slots with physical_available set to True
+        queryset = queryset.filter(physical_available=True)
+
+        serializer = ParkingSlotSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
     queryset = ParkingSlotRules.objects.all()
