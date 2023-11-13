@@ -17,7 +17,6 @@ http://localhost:8000/ParkingApp/api/
 
 ### Story endpoints, what to include in request body:
 
-!!! still in dev (cant make two reservations on the same parking slot but at different times)<->more filtering
 **create bookings**: check if a rule is active and updates price for the specific time frame, else checks if the booking can be made for that time
 - user
 - booking_start_date(iso format)
