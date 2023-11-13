@@ -4,8 +4,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     ParkOwnerViewSet, UsersViewSet, ParkViewSet,
-    ParkDetailsViewSet, FloorViewSet, ParkingSlotViewSet,
-    ParkingSlotRulesViewSet, BookingViewSet, CredentialsViewSet
+    ParkDetailsViewSet, FloorViewSet, AvailableParkingSlotViewSet,
+    ParkingSlotRulesViewSet, BookingViewSet, CredentialsViewSet, AllParkingSlotViewSet
 )
 
 router = DefaultRouter()
@@ -14,7 +14,8 @@ router.register(r'users', UsersViewSet, basename='users')
 router.register(r'park', ParkViewSet, basename='park')
 router.register(r'parkdetails', ParkDetailsViewSet, basename='parkdetails')
 router.register(r'floors', FloorViewSet, basename='floor')
-router.register(r'parkingslots', ParkingSlotViewSet, basename='parkingslot')
+router.register(r'allparkingslots', AllParkingSlotViewSet, basename='allparkingslot')
+router.register(r'availableparkingslots', AvailableParkingSlotViewSet, basename='availableparkingslot')
 router.register(r'parkingslotrules', ParkingSlotRulesViewSet, basename='parkingslotrules')
 router.register(r'bookings', BookingViewSet, basename='booking')
 router.register(r'credentials', CredentialsViewSet, basename='credentials')
