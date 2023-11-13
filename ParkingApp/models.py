@@ -82,6 +82,8 @@ class ParkingSlot(models.Model):
     floor = models.ForeignKey('Floor', on_delete=models.CASCADE)
     slot_number = models.IntegerField()
     has_charger = models.BooleanField()
+    physical_available = models.BooleanField(default=False)
+    standard_price = models.IntegerField(default=10) 
     
     def __str__(self):
         return f"ParkingSlot {self.slot_number} with id: {self.parking_slot_id} on floor: {self.floor.floor_number}"
@@ -102,18 +104,19 @@ class ParkingSlotRules(models.Model):
 
 class Booking(models.Model):
     booking_id = models.AutoField(primary_key=True)
-    parking_slot = models.OneToOneField('ParkingSlot', on_delete=models.CASCADE)
+    parking_slot = models.ForeignKey('ParkingSlot', on_delete=models.CASCADE)
     user = models.OneToOneField('Users', on_delete=models.CASCADE)
     booking_start_date = models.DateTimeField()
     booking_end_date = models.DateTimeField()
     price = models.FloatField()
-    modified = models.BooleanField()    
+    # modified = models.BooleanField(default=False)    
     
-    def __str__(self):
-        return f"Booking starting at {self.date_start_rule} and ending at {self.date_end_rule} with price {self.price} in slot: {self.parking_slot}"
+    # def __str__(self):
+    #     return f"Booking starting at {self.date_start_rule} and ending at {self.date_end_rule} with price {self.price} in slot: {self.parking_slot}"
     
     class Meta:
         db_table = 'Booking'
+        unique_together = []
     
     
     
