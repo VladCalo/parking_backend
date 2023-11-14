@@ -34,19 +34,17 @@ class FloorViewSet(viewsets.ModelViewSet):
     queryset = Floor.objects.all()
     serializer_class = FloorSerializer
     
-class AllParkingSlotViewSet(viewsets.ModelViewSet):
-    queryset = ParkingSlot.objects.all()
-    serializer_class = ParkingSlotSerializer
-
-class AvailableParkingSlotViewSet(viewsets.ModelViewSet):
+class ParkingSlotViewSet(viewsets.ModelViewSet):
     queryset = ParkingSlot.objects.all()
     serializer_class = ParkingSlotSerializer
     
-    def list(self, request, *args, **kwargs):
-       # Get all parking slots
+    def list_all(self, request, *args, **kwargs):
         queryset = ParkingSlot.objects.all()
-
-        # Get the current date and time
+        serializer = ParkingSlotSerializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def list_available(self, request, *args, **kwargs):
+       # Get the current date and time
         current_datetime = timezone.now()
         print(current_datetime)
 
@@ -56,11 +54,15 @@ class AvailableParkingSlotViewSet(viewsets.ModelViewSet):
             Q(booking_start_date__gte=current_datetime, booking_end_date__lt=current_datetime)
         )
 
-        # If there are active bookings, set physical_available to False for the corresponding parking slots
-        ParkingSlot.objects.update(physical_available=Q(pk__in=active_bookings.values('parking_slot')))
-        
-        # Filter parking slots with physical_available set to True
-        queryset = queryset.filter(physical_available=True)
+        # Get parking slots with active bookings and set physical_available to False
+        parking_slots_with_active_bookings = ParkingSlot.objects.filter(pk__in=active_bookings.values('parking_slot'))
+        parking_slots_with_active_bookings.update(physical_available=False)
+
+        # Get parking slots without active bookings and set physical_available to True
+        parking_slots_without_active_bookings = ParkingSlot.objects.exclude(pk__in=parking_slots_with_active_bookings)
+        parking_slots_without_active_bookings.update(physical_available=True)
+
+        queryset = ParkingSlot.objects.filter(physical_available=True)
 
         serializer = ParkingSlotSerializer(queryset, many=True)
         return Response(serializer.data)
