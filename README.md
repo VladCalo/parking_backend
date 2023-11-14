@@ -27,6 +27,7 @@ http://localhost:8000/ParkingApp/api/
 **available parking slots**: all parking slots that dont have active bookings
 
 **all parking slots**: all parking slots
+- has_charger=True to show available parking slots with charger
 
 
 

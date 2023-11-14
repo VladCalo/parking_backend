@@ -63,6 +63,10 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
         parking_slots_without_active_bookings.update(physical_available=True)
 
         queryset = ParkingSlot.objects.filter(physical_available=True)
+        
+        has_charger = request.data.get('has_charger', None)
+        if has_charger is not None:
+            queryset = queryset.filter(has_charger=has_charger)
 
         serializer = ParkingSlotSerializer(queryset, many=True)
         return Response(serializer.data)
