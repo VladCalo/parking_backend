@@ -10,8 +10,6 @@ http://localhost:8000/ParkingApp/api/
 - park/
 - parkdetails/
 - floors/
-- allparkingslots/
-- availableparkingslots
 - parkingslotrules/
 - bookings/
 - credentials/
@@ -24,10 +22,12 @@ http://localhost:8000/ParkingApp/api/
 - booking_end_date(iso format)
 - parking_slot (id) 
 
-**available parking slots**: all parking slots that dont have active bookings
 
-**all parking slots**: all parking slots
+**available parking slots (/api/parkingslots/available)**: all parking slots that dont have active bookings
 - has_charger=True to show available parking slots with charger
+
+**all parking slots(/api/parkingslots/all)**: all parking slots
+
 
 
 
