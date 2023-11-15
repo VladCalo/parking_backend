@@ -31,6 +31,8 @@ class ParkDetails(models.Model):
     address = models.CharField(max_length=255)
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    height_limit = models.IntegerField(default=2)
+    weigh_limit = models.IntegerField(default=3500)
 
     def __str__(self):
         return f"Details for Park with address: {self.address}"
@@ -68,8 +70,6 @@ class Floor(models.Model):
     floor_id = models.AutoField(primary_key=True)
     park = models.ForeignKey('Park', on_delete=models.CASCADE)
     floor_number = models.IntegerField()
-    height_limit = models.IntegerField()
-    weigh_limit = models.IntegerField()
     
     def __str__(self):
         return f"Floor {self.floor_number}"
@@ -90,7 +90,7 @@ class ParkingSlot(models.Model):
     
 class ParkingSlotRules(models.Model):
     parking_slot_rules_id = models.AutoField(primary_key=True)
-    parking_slot = models.OneToOneField('ParkingSlot', on_delete=models.CASCADE)
+    parking_slot = models.ForeignKey('ParkingSlot', on_delete=models.CASCADE)
     date_start_rule = models.DateTimeField()
     date_end_rule = models.DateTimeField()
     available = models.BooleanField()
