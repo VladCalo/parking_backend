@@ -22,6 +22,12 @@ http://localhost:8000/ParkingApp/api/
 - booking_end_date(iso format)
 - parking_slot (id) 
 
+**update booking**
+- user
+- new_start_date
+- new_end_date
+- new_parking_slot
+
 
 **available parking slots (/api/parkingslots/available)**: all parking slots that dont have active bookings
 - has_charger=True to show available parking slots with charger

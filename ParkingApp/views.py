@@ -74,6 +74,52 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
 class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
     queryset = ParkingSlotRules.objects.all()
     serializer_class = ParkingSlotRulesSerializer
+    
+    def create(self, request, *args, **kwargs):
+        parking_slot_id = request.data.get('parking_slot', None)
+        date_start_rule_str = request.data.get('date_start_rule', None)
+        date_end_rule_str = request.data.get('date_end_rule', None)
+        available = request.data.get('available', None)
+        price = request.data.get('price', None)
+
+        if not parking_slot_id or not date_start_rule_str or not date_end_rule_str or not available or price is None:
+            return Response({'error': 'Incomplete data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Convert date strings to datetime objects
+        try:
+            date_start_rule = datetime.strptime(date_start_rule_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            date_end_rule = datetime.strptime(date_end_rule_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            return Response({'error': 'Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for conflicting rules
+        conflicting_rules = ParkingSlotRules.objects.filter(
+            parking_slot=parking_slot_id,
+            date_start_rule__lt=date_end_rule,
+            date_end_rule__gt=date_start_rule,
+        ).first()
+
+        if conflicting_rules:
+            return Response({'error': 'Conflicts with existing rules for the specified period.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # If no conflicts, create the rule
+        parking_slot_rule_data = {
+            'parking_slot': parking_slot_id,
+            'date_start_rule': date_start_rule,
+            'date_end_rule': date_end_rule,
+            'available': available,
+            'price': price,
+        }
+
+        serializer = ParkingSlotRulesSerializer(data=parking_slot_rule_data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
