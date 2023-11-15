@@ -121,6 +121,50 @@ class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def get_object(self):
+        # Override the get_object method to dynamically fetch the parking_slot
+        queryset = self.get_queryset()
+
+        date_start_rule_str = self.request.data.get('date_start_rule', None)
+        date_end_rule_str = self.request.data.get('date_end_rule', None)
+
+        if not date_start_rule_str or not date_end_rule_str:
+            raise AttributeError("date_start_rule and date_end_rule must be provided in the request data.")
+
+        try:
+            date_start_rule = datetime.strptime(date_start_rule_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            date_end_rule = datetime.strptime(date_end_rule_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            raise ValueError("Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).")
+
+        parking_slot_id = self.request.data.get('parking_slot', None)
+
+        if not parking_slot_id:
+            raise AttributeError("parking_slot must be provided in the request data.")
+
+        obj = queryset.filter(
+            parking_slot=parking_slot_id,
+            date_start_rule__lt=date_end_rule,
+            date_end_rule__gt=date_start_rule
+        ).first()
+
+        return obj
+
+    def put(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+
+        instance = self.get_object()
+
+        if instance is None:
+            return Response({'error': 'No matching rule found for the specified period and parking slot.'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer

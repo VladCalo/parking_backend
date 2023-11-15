@@ -34,7 +34,10 @@ http://localhost:8000/ParkingApp/api/
 
 **all parking slots(/api/parkingslots/all)**: all parking slots
 
-
-
+**update parkingslot rules and create parking slot rules**
+- parking_slot
+- date_start_rule
+- date_end_rule
+- price
 
 #### for GET, UPDATE, DELETE with pk: http://localhost:8000/ParkingApp/api/users/pk
