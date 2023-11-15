@@ -146,3 +146,62 @@ class BookingViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request, *args, **kwargs):
+        user_id = request.data.get('user', None)
+        new_start_date_str = request.data.get('new_start_date', None)
+        new_end_date_str = request.data.get('new_end_date', None)
+        new_parking_slot_id = request.data.get('new_parking_slot', None)
+
+        if not user_id or not new_start_date_str or not new_end_date_str or not new_parking_slot_id:
+            return Response({'error': 'Incomplete data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Convert date strings to datetime objects
+        try:
+            new_start_date = datetime.strptime(new_start_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+            new_end_date = datetime.strptime(new_end_date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+        except ValueError:
+            return Response({'error': 'Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Check for conflicts with new start and end date
+        conflicting_bookings = Booking.objects.filter(
+            user=user_id,
+            parking_slot=new_parking_slot_id,
+            booking_start_date__lt=new_end_date,
+            booking_end_date__gt=new_start_date,
+        ).exclude(
+            Q(booking_start_date__gte=new_end_date) | Q(booking_end_date__lte=new_start_date)
+)
+
+        if conflicting_bookings.exists():
+            return Response({'error': 'Conflicts with existing bookings for the specified period.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the existing booking for the user
+        existing_booking = Booking.objects.get(user=user_id)
+        parking_slot = ParkingSlot.objects.get(pk=new_parking_slot_id)
+
+        if existing_booking:
+            # Update the existing booking with the new dates and parking slot
+            existing_booking.booking_start_date = new_start_date
+            existing_booking.booking_end_date = new_end_date
+            existing_booking.parking_slot = parking_slot
+            
+            parking_slot_rule = ParkingSlotRules.objects.filter(
+                parking_slot=new_parking_slot_id,
+                date_start_rule__lte=new_end_date,
+                date_end_rule__gte=new_start_date,
+            ).first()
+            
+            if parking_slot_rule:
+                # Use the price from the parking slot rule
+                existing_booking.price = parking_slot_rule.price
+
+            existing_booking.save()
+
+            serializer = BookingSerializer(existing_booking)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'No active booking found for the specified user.'},
+                            status=status.HTTP_400_BAD_REQUEST)
