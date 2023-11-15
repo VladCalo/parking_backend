@@ -93,7 +93,6 @@ class ParkingSlotRules(models.Model):
     parking_slot = models.ForeignKey('ParkingSlot', on_delete=models.CASCADE)
     date_start_rule = models.DateTimeField()
     date_end_rule = models.DateTimeField()
-    available = models.BooleanField()
     price = models.FloatField()
     
     def __str__(self):
