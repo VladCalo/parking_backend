@@ -5,48 +5,74 @@ from django.db import transaction
 from rest_framework import status
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework import generics
 from datetime import datetime
 from rest_framework import viewsets
 from .models import ParkOwner, Users, Credentials, Park, ParkDetails, Floor, ParkingSlot, ParkingSlotRules, Booking
 from .serializers import ParkOwnerSerializer, UsersSerializer, CredentialsSerializer, ParkSerializer, ParkDetailsSerializer, FloorSerializer, ParkingSlotSerializer, ParkingSlotRulesSerializer, BookingSerializer
 
-class ParkOwnerViewSet(viewsets.ModelViewSet):
+class ParkOwnerListCreateView(generics.ListCreateAPIView):
     queryset = ParkOwner.objects.all()
     serializer_class = ParkOwnerSerializer
 
-class UsersViewSet(viewsets.ModelViewSet):
+class ParkOwnerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ParkOwner.objects.all()
+    serializer_class = ParkOwnerSerializer
+
+class UsersListCreateView(generics.ListCreateAPIView):
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
-    
-class CredentialsViewSet(viewsets.ModelViewSet):
+
+class UsersDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Users.objects.all()
+    serializer_class = UsersSerializer
+
+class CredentialsListCreateView(generics.ListCreateAPIView):
     queryset = Credentials.objects.all()
     serializer_class = CredentialsSerializer
 
-class ParkViewSet(viewsets.ModelViewSet):
+class CredentialsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Credentials.objects.all()
+    serializer_class = CredentialsSerializer
+
+class ParkListCreateView(generics.ListCreateAPIView):
     queryset = Park.objects.all()
     serializer_class = ParkSerializer
 
-class ParkDetailsViewSet(viewsets.ModelViewSet):
+class ParkDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Park.objects.all()
+    serializer_class = ParkSerializer
+
+class ParkDetailsListCreateView(generics.ListCreateAPIView):
     queryset = ParkDetails.objects.all()
     serializer_class = ParkDetailsSerializer
 
-class FloorViewSet(viewsets.ModelViewSet):
+class ParkDetailsDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ParkDetails.objects.all()
+    serializer_class = ParkDetailsSerializer
+
+class FloorListCreateView(generics.ListCreateAPIView):
+    queryset = Floor.objects.all()
+    serializer_class = FloorSerializer
+
+class FloorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Floor.objects.all()
     serializer_class = FloorSerializer
     
-class ParkingSlotViewSet(viewsets.ModelViewSet):
+class ParkingSlotListCreateView(generics.ListCreateAPIView):
     queryset = ParkingSlot.objects.all()
     serializer_class = ParkingSlotSerializer
-    
-    def list_all(self, request, *args, **kwargs):
-        queryset = ParkingSlot.objects.all()
-        serializer = ParkingSlotSerializer(queryset, many=True)
-        return Response(serializer.data)
-    
-    def list_available(self, request, *args, **kwargs):
-       # Get the current date and time
+
+class ParkingSlotDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ParkingSlot.objects.all()
+    serializer_class = ParkingSlotSerializer
+
+class ParkingSlotAvailableListView(generics.ListAPIView):
+    serializer_class = ParkingSlotSerializer
+
+    def get_queryset(self):
+        # Get the current date and time
         current_datetime = timezone.now()
-        print(current_datetime)
 
         # Check for active bookings
         active_bookings = Booking.objects.filter(
@@ -63,24 +89,23 @@ class ParkingSlotViewSet(viewsets.ModelViewSet):
         parking_slots_without_active_bookings.update(physical_available=True)
 
         queryset = ParkingSlot.objects.filter(physical_available=True)
-        
-        has_charger = request.data.get('has_charger', None)
+
+        has_charger = self.request.query_params.get('has_charger', None)
         if has_charger is not None:
             queryset = queryset.filter(has_charger=has_charger)
 
-        serializer = ParkingSlotSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return queryset
 
-class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
+class ParkingSlotRulesListCreateView(generics.ListCreateAPIView):
     queryset = ParkingSlotRules.objects.all()
     serializer_class = ParkingSlotRulesSerializer
-    
+
     def create(self, request, *args, **kwargs):
-        parking_slot_id = request.data.get('parking_slot', None)
-        date_start_rule_str = request.data.get('date_start_rule', None)
-        date_end_rule_str = request.data.get('date_end_rule', None)
-        available = request.data.get('available', None)
-        price = request.data.get('price', None)
+        parking_slot_id = self.request.query_params.get('parking_slot', None)
+        date_start_rule_str = self.request.query_params.get('date_start_rule', None)
+        date_end_rule_str = self.request.query_params.get('date_end_rule', None)
+        available = self.request.query_params.get('available', None)
+        price = self.request.query_params.get('price', None)
 
         if not parking_slot_id or not date_start_rule_str or not date_end_rule_str or not available or price is None:
             return Response({'error': 'Incomplete data provided.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -121,15 +146,19 @@ class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ParkingSlotRulesUpdateView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ParkingSlotRules.objects.all()
+    serializer_class = ParkingSlotRulesSerializer
+    
     def get_object(self):
         # Override the get_object method to dynamically fetch the parking_slot
         queryset = self.get_queryset()
 
-        date_start_rule_str = self.request.data.get('date_start_rule', None)
-        date_end_rule_str = self.request.data.get('date_end_rule', None)
+        date_start_rule_str = self.request.query_params.get('date_start_rule', None)
+        date_end_rule_str = self.request.query_params.get('date_end_rule', None)
 
         if not date_start_rule_str or not date_end_rule_str:
-            raise AttributeError("date_start_rule and date_end_rule must be provided in the request data.")
+            raise AttributeError("date_start_rule and date_end_rule must be provided in the query parameters.")
 
         try:
             date_start_rule = datetime.strptime(date_start_rule_str, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -137,16 +166,19 @@ class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
         except ValueError:
             raise ValueError("Invalid date format. Please use ISO format (e.g., 2023-01-01T00:00:00.000Z).")
 
-        parking_slot_id = self.request.data.get('parking_slot', None)
+        parking_slot_id = self.request.query_params.get('parking_slot', None)
 
         if not parking_slot_id:
-            raise AttributeError("parking_slot must be provided in the request data.")
+            raise AttributeError("parking_slot must be provided in the query parameters.")
 
         obj = queryset.filter(
             parking_slot=parking_slot_id,
             date_start_rule__lt=date_end_rule,
             date_end_rule__gt=date_start_rule
         ).first()
+
+        if obj is None:
+            raise self.NotFound("No matching rule found for the specified period and parking slot.")
 
         return obj
 
@@ -155,26 +187,46 @@ class ParkingSlotRulesViewSet(viewsets.ModelViewSet):
 
         instance = self.get_object()
 
-        if instance is None:
-            return Response({'error': 'No matching rule found for the specified period and parking slot.'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.query_params, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         return Response(serializer.data)
 
-class BookingViewSet(viewsets.ModelViewSet):
+    def delete(self, request, *args, **kwargs):
+        pk = self.kwargs.get('pk', None)
+        try:
+            instance = self.queryset.get(pk=pk)
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ParkingSlotRules.DoesNotExist:
+            return Response({'error': 'No matching rule found for the specified primary key.'}, status=status.HTTP_404_NOT_FOUND)
+    
+class ParkingSlotRulesByPkOnlyView(generics.RetrieveAPIView):
+    queryset = ParkingSlotRules.objects.all()
+    serializer_class = ParkingSlotRulesSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except self.DoesNotExist:
+            return Response(
+                {"error": "No matching rule found for the specified primary key."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+class BookingViewSet(generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
     
     def create(self, request, *args, **kwargs):
-        user_id = request.data.get('user', None)
-        parking_slot_id = request.data.get('parking_slot', None)
-        booking_start_date_str = request.data.get('booking_start_date', None)
-        booking_end_date_str = request.data.get('booking_end_date', None)
-        
+        user_id = self.request.query_params.get('user', None)
+        parking_slot_id = self.request.query_params.get('parking_slot', None)
+        booking_start_date_str = self.request.query_params.get('booking_start_date', None)
+        booking_end_date_str = self.request.query_params.get('booking_end_date', None)
+
         if not user_id or not parking_slot_id or not booking_start_date_str or not booking_end_date_str:
             return Response({'error': 'Incomplete data provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -237,11 +289,11 @@ class BookingViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    def put(self, request, *args, **kwargs):
-        user_id = request.data.get('user', None)
-        new_start_date_str = request.data.get('new_start_date', None)
-        new_end_date_str = request.data.get('new_end_date', None)
-        new_parking_slot_id = request.data.get('new_parking_slot', None)
+    def update(self, request, *args, **kwargs):
+        user_id = self.request.query_params.get('user', None)
+        new_start_date_str = self.request.query_params.get('new_start_date', None)
+        new_end_date_str = self.request.query_params.get('new_end_date', None)
+        new_parking_slot_id = self.request.query_params.get('new_parking_slot', None)
 
         if not user_id or not new_start_date_str or not new_end_date_str or not new_parking_slot_id:
             return Response({'error': 'Incomplete data provided.'}, status=status.HTTP_400_BAD_REQUEST)

@@ -3,25 +3,40 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    ParkOwnerViewSet, UsersViewSet, ParkViewSet,
-    ParkDetailsViewSet, FloorViewSet, ParkingSlotViewSet,
-    ParkingSlotRulesViewSet, BookingViewSet, CredentialsViewSet, 
+    BookingViewSet, ParkingSlotRulesListCreateView, ParkingSlotRulesUpdateView,
+    ParkOwnerListCreateView, ParkOwnerDetailView,
+    UsersListCreateView, UsersDetailView,
+    CredentialsListCreateView, CredentialsDetailView,
+    ParkListCreateView, ParkDetailView,
+    ParkDetailsListCreateView, ParkDetailsDetailView, ParkingSlotRulesByPkOnlyView,
+    FloorListCreateView, FloorDetailView,
+    ParkingSlotListCreateView, ParkingSlotDetailView, ParkingSlotAvailableListView
+
 )
 
 router = DefaultRouter()
-router.register(r'parkowner', ParkOwnerViewSet, basename='parkowner')
-router.register(r'users', UsersViewSet, basename='users')
-router.register(r'park', ParkViewSet, basename='park')
-router.register(r'parkdetails', ParkDetailsViewSet, basename='parkdetails')
-router.register(r'floors', FloorViewSet, basename='floor')
-# router.register(r'parkingslots', ParkingSlotViewSet, basename='parkingslot')
-router.register(r'parkingslotrules', ParkingSlotRulesViewSet, basename='parkingslotrules')
 router.register(r'bookings', BookingViewSet, basename='booking')
-router.register(r'credentials', CredentialsViewSet, basename='credentials')
+
 
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('api/parkingslots/all/', ParkingSlotViewSet.as_view({'get': 'list_all'}), name='parkingslot-list-all'),
-    path('api/parkingslots/available/', ParkingSlotViewSet.as_view({'get': 'list_available'}), name='parkingslot-list-available'),
-    # Add other URL patterns as needed
+    path('park-owner/', ParkOwnerListCreateView.as_view(), name='park-owner-list-create'),
+    path('park-owner/<int:pk>/', ParkOwnerDetailView.as_view(), name='park-owner-detail'),
+    path('users/', UsersListCreateView.as_view(), name='users-list-create'),
+    path('users/<int:pk>/', UsersDetailView.as_view(), name='users-detail'),
+    path('credentials/', CredentialsListCreateView.as_view(), name='credentials-list-create'),
+    path('credentials/<int:pk>/', CredentialsDetailView.as_view(), name='credentials-detail'),
+    path('park/', ParkListCreateView.as_view(), name='park-list-create'),
+    path('park/<int:pk>/', ParkDetailView.as_view(), name='park-detail'),
+    path('park-details/', ParkDetailsListCreateView.as_view(), name='park-details-list-create'),
+    path('park-details/<int:pk>/', ParkDetailsDetailView.as_view(), name='park-details-detail'),
+    path('floors/', FloorListCreateView.as_view(), name='floor-list-create'),
+    path('floors/<int:pk>/', FloorDetailView.as_view(), name='floor-detail'),
+    path('parking-slots/', ParkingSlotListCreateView.as_view(), name='parkingslot-list-create'),
+    path('parking-slots/<int:pk>/', ParkingSlotDetailView.as_view(), name='parkingslot-detail'),
+    path('parking-slots/available/', ParkingSlotAvailableListView.as_view(), name='parkingslot-list-available'),
+    path('parking-slot-rules/', ParkingSlotRulesListCreateView.as_view(), name='parkingslotrules-list-create'),
+    path('parking-slot-rules/<int:pk>/', ParkingSlotRulesUpdateView.as_view(), name='parkingslotrules-update'),
+    path('parking-slot-rules/by-pk/<int:pk>/', ParkingSlotRulesByPkOnlyView.as_view(), name='parkingslotrules-detail-by-pk'),
+    path('bookings/', BookingViewSet.as_view(), name='booking-list'),
+    path('bookings/<int:pk>/', BookingViewSet.as_view(), name='booking-detail'),
 ]
