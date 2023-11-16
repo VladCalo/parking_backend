@@ -3,41 +3,107 @@
 - maybe add default price for parking slots and when a rule is active overwrites that (not implemented)
 
 
-### CURD enpoints
-http://localhost:8000/ParkingApp/api/
-- parkowner/
-- users/
-- park/
-- parkdetails/
-- floors/
-- parkingslotrules/
-- bookings/
-- credentials/
+### Endpoints
+http://localhost:8000/ParkingApp/
+- **/park-owner/**
+  - C
+  - R
 
-### Story endpoints, what to include in request body:
+- **/park-owner/<int:pk>/**
+  - R
+  - U
+  - D
 
-**create bookings**: check if a rule is active and updates price for the specific time frame, else checks if the booking can be made for that time
-- user
-- booking_start_date(iso format)
-- booking_end_date(iso format)
-- parking_slot (id) 
+- **/users/**
+  - C
+  - R
 
-**update booking**
-- user
-- new_start_date
-- new_end_date
-- new_parking_slot
+- **/users/<int:pk>/**
+  - R
+  - U
+  - D
 
+- **/credentials/**
+  - C
+  - R
 
-**available parking slots (/api/parkingslots/available)**: all parking slots that dont have active bookings
-- has_charger=True to show available parking slots with charger
+- **/credentials/<int:pk>/**
+  - R
+  - U
+  - D
 
-**all parking slots(/api/parkingslots/all)**: all parking slots
+- **/park/**
+  - C
+  - R
 
-**update parkingslot rules and create parking slot rules**
-- parking_slot
-- date_start_rule
-- date_end_rule
-- price
+- **/park/<int:pk>/**
+  - R
+  - U
+  - D
 
-#### for GET, UPDATE, DELETE with pk: http://localhost:8000/ParkingApp/api/users/pk
+- **/park-details/**
+  - C
+  - R
+
+- **/park-details/<int:pk>/**
+  - R
+  - U
+  - D
+
+- **/floors/**
+  - C
+  - R
+
+- **/floors/<int:pk>/**
+  - R
+  - U
+  - D
+
+- **/parking-slots/**
+  - C
+  - R
+
+- **/parking-slots/<int:pk>/**
+  - R
+  - U
+  - D
+
+- **/parking-slots/available/**
+  - R
+    - has_charger(bool)
+
+- **/parking-slot-rules/**
+  - C
+    - parking_slot
+    - date_start_rule
+    - date_end_rule
+    - price
+  - R
+
+- **/parking-slot-rules/<int:pk>/**
+  - U
+    - parking_slot
+    - date_start_rule
+    - date_end_rule
+    - price
+  - D
+
+- **/parking-slot-rules/by-pk/<int:pk>/**
+  - R (sorry retrieve by pk is separate, dev complication)
+
+- **/bookings/**
+  - C
+    - user
+    - parking_slot
+    - booking_start_date (ISO format)
+    - booking_end_date (ISO format)
+  - R
+
+- **/bookings/<int:pk>/**
+  - R
+  - U
+    - user
+    - new_start_date
+    - new_end_date
+    - new_parking_slot (it can also be the same parking slot)
+  - D
