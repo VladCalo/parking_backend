@@ -4,6 +4,7 @@ from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from ..serializers import *
 from ..models import *
+from datetime import datetime
 
 
 class ParkOwnerAPITest(TestCase):
@@ -241,6 +242,10 @@ class ParkingSlotAPITest(TestCase):
         self.parking_slot_list_create_url = reverse('parkingslot-list-create')
         self.parking_slot_detail_url = reverse('parkingslot-detail', kwargs={'pk': 1})
         self.parking_slot_available_list_url = reverse('parkingslot-list-available')
+        self.parking_slot_rules_list_create_url = reverse('parkingslotrules-list-create')
+        self.parking_slot_rules_detail_url = reverse('parkingslotrules-update', kwargs={'pk': 1})
+        self.parking_slot_rules_by_pk_url = reverse('parkingslotrules-detail-by-pk', kwargs={'pk': 1})
+
 
     def test_create_parking_slot(self):
         response = self.client.post(self.parking_slot_list_create_url, self.parking_slot_data, format='json')
@@ -276,3 +281,64 @@ class ParkingSlotAPITest(TestCase):
         response = self.client.get(self.parking_slot_available_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+class BookingParkingSlotRulesAPITest(TestCase):
+    def setUp(self):
+        self.park_owner = ParkOwner.objects.create(first_name="John", last_name="Doe", email="john.doe@example.com", password="password123")
+        self.user = Users.objects.create(credentials=Credentials.objects.create(email="user@example.com", password="userpassword"), first_name="Jane", last_name="Doe", number_plate="ABC123", vehicle_type="Car", verified=True)
+        self.credentials = Credentials.objects.create(email="test@example.com", password="testpassword")
+
+        self.park_details = ParkDetails.objects.create(address="123 Main St", latitude=40.7128, longitude=-74.0060, height_limit=2, weigh_limit=3500)
+        
+        self.park = Park.objects.create(park_owner=self.park_owner, total_spots=100, no_floors=5, park_details=self.park_details)
+        
+        self.floor = Floor.objects.create(park=self.park, floor_number=1)
+        self.parking_slot = ParkingSlot.objects.create(floor=self.floor, slot_number=1, has_charger=True, physical_available=True, standard_price=10)
+        self.parking_slot_rules = ParkingSlotRules.objects.create(parking_slot=self.parking_slot, date_start_rule="2023-01-01T00:00:00.000Z", date_end_rule="2023-01-02T00:00:00.000Z", price=15.0)
+        self.booking = Booking.objects.create(parking_slot=self.parking_slot, user=self.user, booking_start_date="2023-01-01T12:00:00.000Z", booking_end_date="2023-01-01T14:00:00.000Z", price=10.0)
+
+        self.client = APIClient()
+
+    # def test_create_booking(self):
+    #     url = reverse('booking-list')
+    #     data = {
+    #         'user': self.user.pk,
+    #         'parking_slot': self.parking_slot.pk,
+    #         'booking_start_date': "2023-01-03T12:00:00.000Z",
+    #         'booking_end_date': "2023-01-03T14:00:00.000Z",
+    #         'price': 12.0,
+    #     }
+
+    #     response = self.client.post(url, data, format='json')
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_read_booking(self):
+        url = reverse('booking-detail', args=[self.booking.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_delete_booking(self):
+        url = reverse('booking-detail', args=[self.booking.pk])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_booking(self):
+        url = reverse('booking-detail', args=[self.booking.pk])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_create_parking_slot_rule(self):
+        url = reverse('parkingslotrules-list-create')
+        data = {
+            'parking_slot': self.parking_slot.pk,
+            'date_start_rule': "2023-01-03T12:00:00.000Z",
+            'date_end_rule': "2023-01-03T14:00:00.000Z",
+            'price': 20.0,
+        }
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    
+    def test_read_parking_slot_rule(self):
+        url = reverse('parkingslotrules-detail-by-pk', args=[self.parking_slot_rules.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
