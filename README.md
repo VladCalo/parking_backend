@@ -3,7 +3,14 @@
 - updates are full updates not partial 
 - dates are in ISO format 
   - ex: 2023-01-01T00:00:00.000Z
-- to access the admin page of Django app where you can add entries in tables go to: http://localhost:8000/admin/ and login with admin/admin
+
+- to access the admin page of Django app where you can add entries in tables:
+  - first install req.txt
+  - "cd" to where manage.py is located
+  - ```bash
+    python3 manage.py runserver
+    ```
+  - http://localhost:8000/admin/ and login with admin/admin
 
 
 ### Endpoints
