@@ -117,7 +117,7 @@ class Booking(models.Model):
         db_table = 'Booking'
         unique_together = []
     
-    
+
     
     
     
