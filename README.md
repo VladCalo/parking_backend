@@ -1,4 +1,5 @@
 #### Note that:
+- jwt not implemented yet
 - a user can only have one active booking at a time (user 1to1 with booking)
 - updates are full updates not partial 
 - dates are in ISO format 
