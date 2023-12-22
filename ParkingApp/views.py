@@ -11,6 +11,32 @@ from rest_framework import viewsets
 from .models import ParkOwner, Users, Credentials, Park, ParkDetails, Floor, ParkingSlot, ParkingSlotRules, Booking
 from .serializers import ParkOwnerSerializer, UsersSerializer, CredentialsSerializer, ParkSerializer, ParkDetailsSerializer, FloorSerializer, ParkingSlotSerializer, ParkingSlotRulesSerializer, BookingSerializer
 
+class LoginView(generics.CreateAPIView):
+    serializer_class = CredentialsSerializer  # Assuming you have a serializer for Credentials model
+
+    def create(self, request, *args, **kwargs):
+        email = request.data.get('email', None)
+        password = request.data.get('password', None)
+
+        if not email or not password:
+            return Response({'error': 'Both email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            credentials = Credentials.objects.get(email=email, password=password)
+            serializer = CredentialsSerializer(credentials)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Credentials.DoesNotExist:
+            pass
+
+        try:
+            park_owner = ParkOwner.objects.get(email=email, password=password)
+            serializer = ParkOwnerSerializer(park_owner)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ParkOwner.DoesNotExist:
+            pass
+
+        return Response({'error': 'Bad credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 class ParkOwnerListCreateView(generics.ListCreateAPIView):
     queryset = ParkOwner.objects.all()
     serializer_class = ParkOwnerSerializer

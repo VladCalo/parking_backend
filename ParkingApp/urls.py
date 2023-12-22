@@ -10,7 +10,7 @@ from .views import (
     ParkListCreateView, ParkDetailView,
     ParkDetailsListCreateView, ParkDetailsDetailView, ParkingSlotRulesByPkOnlyView,
     FloorListCreateView, FloorDetailView,
-    ParkingSlotListCreateView, ParkingSlotDetailView, ParkingSlotAvailableListView
+    ParkingSlotListCreateView, ParkingSlotDetailView, ParkingSlotAvailableListView, LoginView
 
 )
 
@@ -19,6 +19,7 @@ router.register(r'bookings', BookingViewSet, basename='booking')
 
 
 urlpatterns = [
+    path('login/', LoginView.as_view(), name='login'),
     path('park-owner/', ParkOwnerListCreateView.as_view(), name='park-owner-list-create'),
     path('park-owner/<int:pk>/', ParkOwnerDetailView.as_view(), name='park-owner-detail'),
     path('users/', UsersListCreateView.as_view(), name='users-list-create'),

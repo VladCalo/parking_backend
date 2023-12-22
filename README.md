@@ -15,6 +15,11 @@
 
 ### Endpoints
 http://localhost:8000/ParkingApp/
+
+- **/login/** (POST method)
+  - email
+  - password
+
 - **/park-owner/**
   - C
     - first_name
