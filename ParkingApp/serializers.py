@@ -46,4 +46,3 @@ class BookingSerializer(serializers.ModelSerializer):
         model = Booking
         fields = '__all__'
 
-# Repeat this pattern for other models

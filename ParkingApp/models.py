@@ -4,7 +4,7 @@ class ParkOwner(models.Model):
     park_owner_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=False)
     password = models.CharField(max_length=100)  
     
     def __str__(self):
@@ -42,7 +42,7 @@ class ParkDetails(models.Model):
 
 class Credentials(models.Model):
     credentials_id = models.AutoField(primary_key=True)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=False)
     password = models.CharField(max_length=100)  # Use Django's authentication system for passwords
 
     def __str__(self):
