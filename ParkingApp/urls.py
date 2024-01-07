@@ -11,14 +11,20 @@ from .views import (
     ParkDetailsListCreateView, ParkDetailsDetailView, ParkingSlotRulesByPkOnlyView,
     FloorListCreateView, FloorDetailView,
     ParkingSlotListCreateView, ParkingSlotDetailView, ParkingSlotAvailableListView, LoginView
-
 )
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 
 router = DefaultRouter()
 router.register(r'bookings', BookingViewSet, basename='booking')
 
 
 urlpatterns = [
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('login/', LoginView.as_view(), name='login'),
     path('park-owner/', ParkOwnerListCreateView.as_view(), name='park-owner-list-create'),
     path('park-owner/<int:pk>/', ParkOwnerDetailView.as_view(), name='park-owner-detail'),

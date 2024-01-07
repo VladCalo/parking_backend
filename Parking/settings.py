@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'ParkingApp',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 # settings.py
@@ -69,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'Parking.urls'

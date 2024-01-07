@@ -104,7 +104,7 @@ class ParkingSlotRules(models.Model):
 class Booking(models.Model):
     booking_id = models.AutoField(primary_key=True)
     parking_slot = models.ForeignKey('ParkingSlot', on_delete=models.CASCADE)
-    user = models.OneToOneField('Users', on_delete=models.CASCADE)
+    user = models.ForeignKey('Users', on_delete=models.CASCADE)
     booking_start_date = models.DateTimeField()
     booking_end_date = models.DateTimeField()
     price = models.FloatField()
